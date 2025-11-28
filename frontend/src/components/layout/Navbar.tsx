@@ -1,5 +1,7 @@
+```
 import { Bell, Search, Shield, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MobileConnectModal } from "@/components/MobileConnectModal";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { cn } from "@/lib/utils";
 
@@ -48,9 +50,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
-          <StatusBadge status="success" pulse>
-            System Online
-          </StatusBadge>
+          <div className="flex items-center gap-2 md:gap-4">
+            <MobileConnectModal />
+            <StatusBadge status="success" pulse>
+              System Online
+            </StatusBadge>
+          </div>
 
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
