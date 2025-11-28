@@ -1,4 +1,4 @@
-import { Settings as SettingsIcon, User, Shield, Bell, Globe, Key, CreditCard, ChevronRight } from "lucide-react";
+import { Settings as SettingsIcon, User, Shield, Bell, Globe, Key } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { CyberCard, CyberCardHeader, CyberCardTitle, CyberCardContent } from "@/components/ui/cyber-card";
@@ -93,27 +93,7 @@ export default function Settings() {
               </CyberCardContent>
             </CyberCard>
 
-            {/* Subscription Card */}
-            <CyberCard variant="gradient" hover={false}>
-              <CyberCardHeader>
-                <CyberCardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-primary" />
-                  Subscription
-                </CyberCardTitle>
-              </CyberCardHeader>
-              <CyberCardContent>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-primary/10 border border-primary/30">
-                  <div>
-                    <h4 className="font-semibold text-foreground">Guardian Plan</h4>
-                    <p className="text-sm text-muted-foreground">$9.99/month • Renews Jan 17, 2025</p>
-                  </div>
-                  <Button variant="cyber-outline">
-                    Manage Plan
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CyberCardContent>
-            </CyberCard>
+
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6">
