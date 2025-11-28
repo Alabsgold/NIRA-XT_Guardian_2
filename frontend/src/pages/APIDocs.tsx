@@ -1,16 +1,38 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CyberCard, CyberCardHeader, CyberCardTitle, CyberCardContent } from "@/components/ui/cyber-card";
 import { Button } from "@/components/ui/button";
-import { Terminal, Code, Server, Shield, Copy, Check } from "lucide-react";
+import { Terminal, Code, Server, Shield, Copy, Check, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function APIDocs() {
     const [copied, setCopied] = useState(false);
+    const [apiKey, setApiKey] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+        toast.success("Copied to clipboard");
+    };
+
+    const handleGenerateKey = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch("http://localhost:8000/api/v1/auth/generate-api-key", {
+                method: "POST",
+            });
+            if (!response.ok) throw new Error("Failed to generate key");
+            const data = await response.json();
+            setApiKey(data.api_key);
+            toast.success("New API key generated successfully");
+        } catch (error) {
+            toast.error("Failed to generate API key. Is the backend running?");
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -101,13 +123,31 @@ export default function APIDocs() {
                                 <div className="p-3 rounded bg-background border border-border">
                                     <label className="text-xs text-muted-foreground block mb-1">Your API Key</label>
                                     <div className="flex items-center justify-between">
-                                        <code className="text-sm font-mono text-foreground">xdns_live_...892m</code>
-                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                            <Copy className="w-3 h-3" />
-                                        </Button>
+                                        <code className="text-sm font-mono text-foreground">
+                                            {apiKey || "No key generated"}
+                                        </code>
+                                        {apiKey && (
+                                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => copyToClipboard(apiKey)}>
+                                                <Copy className="w-3 h-3" />
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
-                                <Button className="w-full" variant="cyber-outline">Generate New Key</Button>
+                                <Button
+                                    className="w-full"
+                                    variant="cyber-outline"
+                                    onClick={handleGenerateKey}
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Generating...
+                                        </>
+                                    ) : (
+                                        "Generate New Key"
+                                    )}
+                                </Button>
                             </CyberCardContent>
                         </CyberCard>
 

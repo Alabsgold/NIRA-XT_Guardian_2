@@ -1,10 +1,16 @@
+import secrets
 from datetime import timedelta
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from app.core import security
 from app.core.config import settings
+from app.core.config import settings
 from app.models.user import Token
+from pydantic import BaseModel
+
+class APIKeyResponse(BaseModel):
+    api_key: str
 
 router = APIRouter()
 
@@ -25,3 +31,14 @@ def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Any:
         ),
         "token_type": "bearer",
     }
+
+@router.post("/generate-api-key", response_model=APIKeyResponse)
+def generate_api_key() -> Any:
+    """
+    Generate a new API key for the user.
+    """
+    # Generate a secure random key
+    key_suffix = secrets.token_hex(16)
+    api_key = f"xdns_live_{key_suffix}"
+    
+    return {"api_key": api_key}
