@@ -46,9 +46,12 @@ def start_dns_server(port=53):
             data, addr = sock.recvfrom(512)
             threading.Thread(target=handle_query, args=(data, addr, sock)).start()
             
-    except PermissionError:
-        print(f"❌ Permission denied for port {port}. Trying 5353...")
-        start_dns_server(5353)
+    except (PermissionError, OSError) as e:
+        if port == 53:
+            print(f"⚠️ Port {port} unavailable ({e}). Trying 5353...")
+            start_dns_server(5353)
+        else:
+            print(f"❌ Failed to start DNS server on port {port}: {e}")
     except Exception as e:
         print(f"❌ Failed to start DNS server: {e}")
 

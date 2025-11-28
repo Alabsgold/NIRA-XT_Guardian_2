@@ -1,4 +1,4 @@
-```
+
 import { Bell, Search, Shield, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MobileConnectModal } from "@/components/MobileConnectModal";
