@@ -4,6 +4,7 @@ import random
 import time
 import asyncio
 from pydantic import BaseModel
+from app.core.dns_state import dns_state
 
 router = APIRouter()
 
@@ -21,17 +22,17 @@ def get_live_dns_queries():
     """
     Get a snapshot of recent DNS queries.
     """
-    # Simulate fetching from a database or in-memory cache
-    return generate_mock_queries(10)
+    return dns_state.get_logs()
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            # Simulate live streaming data
-            data = generate_mock_queries(1)[0]
-            await websocket.send_json(data.dict())
+            # Send latest logs
+            logs = dns_state.get_logs()
+            if logs:
+                await websocket.send_json(logs[0]) # Send most recent
             await asyncio.sleep(2) # Send every 2 seconds
     except Exception:
         pass
