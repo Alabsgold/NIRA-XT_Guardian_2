@@ -4,6 +4,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { CyberCard, CyberCardHeader, CyberCardTitle, CyberCardContent } from "@/components/ui/cyber-card";
+import { useQuery } from "@tanstack/react-query";
+import { fetchLiveDNS } from "@/lib/api";
 
 interface DNSQuery {
   id: string;
@@ -15,68 +17,39 @@ interface DNSQuery {
   responseTime: number;
 }
 
-const generateQuery = (id: number): DNSQuery => {
-  const domains = [
-    "api.github.com",
-    "cdn.cloudflare.com",
-    "analytics.google.com",
-    "ads.doubleclick.net",
-    "tracker.fb.com",
-    "api.stripe.com",
-    "fonts.googleapis.com",
-    "malware.badsite.xyz",
-    "phishing.scam.net",
-    "cdn.jsdelivr.net",
-  ];
-  const devices = ["MacBook Pro", "iPhone 14", "iPad Air", "Smart TV", "Gaming PC"];
-  const types = ["A", "AAAA", "CNAME", "MX", "TXT"];
-
-  const domain = domains[Math.floor(Math.random() * domains.length)];
-  const isMalicious = domain.includes("malware") || domain.includes("phishing") || domain.includes("tracker") || domain.includes("ads");
-
-  return {
-    id: `query-${id}-${Date.now()}`,
-    timestamp: new Date().toLocaleTimeString(),
-    domain,
-    type: types[Math.floor(Math.random() * types.length)],
-    device: devices[Math.floor(Math.random() * devices.length)],
-    status: isMalicious ? "blocked" : Math.random() > 0.3 ? "allowed" : "cached",
-    responseTime: Math.floor(Math.random() * 50) + 5,
-  };
-};
-
 export default function DNSMonitor() {
-  const [queries, setQueries] = useState<DNSQuery[]>(() =>
-    Array.from({ length: 10 }, (_, i) => generateQuery(i))
-  );
   const [isPaused, setIsPaused] = useState(false);
   const [filter, setFilter] = useState<"all" | "blocked" | "allowed">("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [queryHistory, setQueryHistory] = useState<DNSQuery[]>([]);
+
+  const { data: liveQueries } = useQuery({
+    queryKey: ['liveDNS'],
+    queryFn: fetchLiveDNS,
+    refetchInterval: isPaused ? false : 2000,
+    enabled: !isPaused,
+  });
 
   useEffect(() => {
-    if (isPaused) return;
-
-    const interval = setInterval(() => {
-      setQueries((prev) => {
-        const newQuery = generateQuery(prev.length);
-        return [newQuery, ...prev.slice(0, 99)];
+    if (liveQueries) {
+      setQueryHistory(prev => {
+        const newQueries = [...liveQueries, ...prev].slice(0, 100);
+        return newQueries;
       });
-    }, 2000);
+    }
+  }, [liveQueries]);
 
-    return () => clearInterval(interval);
-  }, [isPaused]);
-
-  const filteredQueries = queries.filter((query) => {
+  const filteredQueries = queryHistory.filter((query) => {
     if (filter !== "all" && query.status !== filter) return false;
     if (searchTerm && !query.domain.toLowerCase().includes(searchTerm.toLowerCase())) return false;
     return true;
   });
 
   const stats = {
-    total: queries.length,
-    blocked: queries.filter((q) => q.status === "blocked").length,
-    allowed: queries.filter((q) => q.status === "allowed").length,
-    cached: queries.filter((q) => q.status === "cached").length,
+    total: queryHistory.length,
+    blocked: queryHistory.filter((q) => q.status === "blocked").length,
+    allowed: queryHistory.filter((q) => q.status === "allowed").length,
+    cached: queryHistory.filter((q) => q.status === "cached").length,
   };
 
   return (
@@ -275,8 +248,8 @@ export default function DNSMonitor() {
                             query.status === "blocked"
                               ? "danger"
                               : query.status === "allowed"
-                              ? "success"
-                              : "active"
+                                ? "success"
+                                : "active"
                           }
                         >
                           {query.status}

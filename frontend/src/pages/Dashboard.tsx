@@ -6,16 +6,22 @@ import { ThreatTable } from "@/components/dashboard/ThreatTable";
 import { CyberCard, CyberCardHeader, CyberCardTitle, CyberCardContent } from "@/components/ui/cyber-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
-
-const devices = [
-  { name: "MacBook Pro", status: "active" as const, queries: 2340 },
-  { name: "iPhone 14 Pro", status: "active" as const, queries: 1876 },
-  { name: "iPad Air", status: "active" as const, queries: 654 },
-  { name: "Smart TV", status: "muted" as const, queries: 234 },
-  { name: "Gaming PC", status: "warning" as const, queries: 3421 },
-];
+import { useQuery } from "@tanstack/react-query";
+import { fetchStats, fetchDevices } from "@/lib/api";
 
 export default function Dashboard() {
+  const { data: stats } = useQuery({
+    queryKey: ['stats'],
+    queryFn: fetchStats,
+    refetchInterval: 5000,
+  });
+
+  const { data: devices } = useQuery({
+    queryKey: ['devices'],
+    queryFn: fetchDevices,
+    refetchInterval: 5000,
+  });
+
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -44,7 +50,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="Total DNS Queries"
-            value="48,392"
+            value={stats?.total_queries || "..."}
             change="+12.5% from yesterday"
             changeType="positive"
             icon={Globe}
@@ -52,7 +58,7 @@ export default function Dashboard() {
           />
           <StatsCard
             title="Threats Blocked"
-            value="1,247"
+            value={stats?.threats_blocked || "..."}
             change="+8.2% from yesterday"
             changeType="positive"
             icon={Shield}
@@ -60,7 +66,7 @@ export default function Dashboard() {
           />
           <StatsCard
             title="Domains Blocked"
-            value="892"
+            value={stats?.domains_blocked || "..."}
             change="Custom block list"
             changeType="neutral"
             icon={Ban}
@@ -68,7 +74,7 @@ export default function Dashboard() {
           />
           <StatsCard
             title="Avg Response Time"
-            value="12ms"
+            value={stats?.avg_response_time || "..."}
             change="-3ms from average"
             changeType="positive"
             icon={Clock}
@@ -87,11 +93,11 @@ export default function Dashboard() {
             <CyberCardHeader>
               <CyberCardTitle>Connected Devices</CyberCardTitle>
               <p className="text-sm text-muted-foreground">
-                {devices.length} devices on network
+                {devices?.length || 0} devices on network
               </p>
             </CyberCardHeader>
             <CyberCardContent className="space-y-3">
-              {devices.map((device, index) => (
+              {devices?.map((device: any, index: number) => (
                 <div
                   key={device.name}
                   className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors dns-row-animate"
@@ -114,8 +120,8 @@ export default function Dashboard() {
                     {device.status === "active"
                       ? "Online"
                       : device.status === "warning"
-                      ? "High Traffic"
-                      : "Idle"}
+                        ? "High Traffic"
+                        : "Idle"}
                   </StatusBadge>
                 </div>
               ))}

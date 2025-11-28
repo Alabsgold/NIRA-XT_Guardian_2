@@ -10,7 +10,6 @@ import ParentalControl from "./pages/ParentalControl";
 import BlockAllowList from "./pages/BlockAllowList";
 import ActivityLogs from "./pages/ActivityLogs";
 import Settings from "./pages/Settings";
-import Subscription from "./pages/Subscription";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,7 +28,6 @@ const App = () => (
           <Route path="/block-allow" element={<BlockAllowList />} />
           <Route path="/logs" element={<ActivityLogs />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/subscription" element={<Subscription />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
