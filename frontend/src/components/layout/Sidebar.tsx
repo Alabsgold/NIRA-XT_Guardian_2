@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Globe,
   X,
+  Server,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,7 @@ const menuItems = [
   { icon: Users, label: "Parental Control", path: "/parental-control" },
   { icon: ListChecks, label: "Block/Allow List", path: "/block-allow" },
   { icon: FileText, label: "Activity Logs", path: "/logs" },
+  { icon: Server, label: "API Access", path: "/api-docs" },
 ];
 
 const settingsItems = [
