@@ -1,46 +1,88 @@
 # NIRA-XT Guardian 2
 
-> **Team X-CODERS** | NIRA-XT Hackathon II Submission
+NIRA-XT Guardian 2 is a comprehensive DNS-level parental control and threat protection system. It features a modern React frontend and a powerful FastAPI backend with a custom DNS server.
 
-![NIRA-XT Guardian 2 Banner](https://via.placeholder.com/1200x400?text=NIRA-XT+Guardian+2+by+Team+X-CODERS)
+## 🚀 Features
+- **Real-time DNS Filtering**: Blocks malware, phishing, and ads at the DNS level.
+- **Modern Dashboard**: Beautiful, responsive UI built with React, Vite, and Shadcn/UI.
+- **Threat Intelligence**: Integrated with threat feeds to block malicious domains.
+- **Device Management**: Manage and monitor devices on your network.
 
-## Overview
-NIRA-XT Guardian 2 is a next-generation, AI-powered DNS protection and domain classification system designed specifically for the .ng domain space. Built by **Team X-CODERS**, this solution provides enterprise-grade security, real-time threat monitoring, and seamless cross-platform integration.
+## �️ Tech Stack
+- **Frontend**: React, Vite, TailwindCSS, Shadcn/UI, Recharts
+- **Backend**: FastAPI, Python, DNSPython
+- **Database**: In-memory (Demo) / SQLite (Production ready)
 
-## Key Features
-- **🛡️ Advanced DNS Protection**: Real-time blocking of malicious domains (phishing, malware, ads).
-- **🇳🇬 Tailored for .ng**: Specialized algorithms to safeguard the Nigerian digital space.
-- **⚡ High Performance**: Built with FastAPI and React for lightning-fast response times.
-- **📱 Cross-Platform**: Works on Desktop, Mobile, and as a Browser Extension.
-- **🚫 No Pricing/Subscriptions**: Completely free and open access for maximum adoption.
-- **📊 Detailed Analytics**: Comprehensive dashboard with live query monitoring.
+## 📦 Installation
 
-## Demo
-Watch our 3-minute demo video to see NIRA-XT Guardian 2 in action:
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- npm
 
-[![Watch Demo](https://img.shields.io/badge/Watch-Demo_Video-red?style=for-the-badge&logo=youtube)](https://youtube.com/watch?v=placeholder) 
-*(Note: Replace link with actual video URL)*
+### Local Development
 
-## Quick Start
-To launch the full system locally for a demo:
+1.  **Clone the repository**
+    ```bash
+    git clone <repository-url>
+    cd NIRA-XT_Guardian_2
+    ```
 
-1. Ensure Python and Node.js are installed.
-2. Run the demo launcher:
-   ```bash
-   python demo_launcher.py
-   ```
+2.  **Run the Demo Launcher** (Easiest way)
+    ```bash
+    python demo_launcher.py
+    ```
+    This will start both the backend and frontend automatically.
 
-See [build.md](build.md) for detailed build and installation instructions.
+### Manual Setup
 
-## Architecture
-- **Backend**: Python (FastAPI) - Handling DNS logic, threat intelligence, and device management.
-- **Frontend**: React (Vite) + TailwindCSS - Premium, responsive UI.
-- **Database**: SQLite (Demo) / PostgreSQL (Production ready).
+**Backend**
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 
-## API Documentation
-Once the backend is running, visit:
-- **Swagger UI**: `http://localhost:8000/docs`
-- **ReDoc**: `http://localhost:8000/redoc`
+**Frontend**
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
----
-*Built with ❤️ by Team X-CODERS*
+## 🌍 Deployment
+
+### Frontend (Vercel)
+The frontend is optimized for deployment on Vercel.
+
+1.  Push your code to GitHub/GitLab/Bitbucket.
+2.  Import the project into Vercel.
+3.  Select the `frontend` directory as the **Root Directory**.
+4.  Vercel should automatically detect Vite.
+5.  Click **Deploy**.
+
+### Backend (Docker / VPS)
+**Note**: The backend requires a persistent process to run the DNS server (UDP Port 53). It **cannot** be deployed on Vercel Serverless Functions.
+
+**Option 1: Docker (Recommended)**
+1.  Build the image:
+    ```bash
+    docker-compose up --build -d
+    ```
+2.  The backend will be available at `http://localhost:8000` and DNS on port 53.
+
+**Option 2: Render / Railway / Fly.io**
+1.  Connect your repository.
+2.  Set the **Root Directory** to `backend`.
+3.  Set the **Build Command** to: `pip install -r requirements.txt`
+4.  Set the **Start Command** to: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+5.  **Important**: Most PaaS free tiers (like Render) do not support UDP ports (DNS). You may need a VPS (DigitalOcean, AWS EC2, Hetzner) to run the actual DNS server component publicly.
+    *   For a VPS, simply use the `docker-compose.yml` provided.
+
+## 🛡️ DNS Configuration
+To use the filtering, configure your device's DNS settings to point to the IP address where the backend is running.
+- **Localhost**: `127.0.0.1`
+- **VPS**: `<Your-VPS-IP>`
+
+## 📄 License
+MIT
