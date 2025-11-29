@@ -22,4 +22,19 @@ export const fetchLiveDNS = async () => {
     return response.data;
 };
 
+export const chatWithAI = async (message: string, history: any[] = []) => {
+    const response = await api.post('/ai/chat', { message, history });
+    return response.data;
+};
+
+export const analyzeDomain = async (domain: string) => {
+    const response = await api.post('/ai/analyze-domain', { domain });
+    return response.data;
+};
+
+export const fetchAIInsights = async () => {
+    const response = await api.get('/ai/insights');
+    return response.data;
+};
+
 export default api;

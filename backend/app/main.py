@@ -28,6 +28,8 @@ app.include_router(dns.router, prefix=f"{settings.API_V1_STR}/dns", tags=["dns"]
 app.include_router(devices.router, prefix=f"{settings.API_V1_STR}/devices", tags=["devices"])
 app.include_router(threats.router, prefix=f"{settings.API_V1_STR}/threats", tags=["threats"])
 app.include_router(system.router, prefix=f"{settings.API_V1_STR}/system", tags=["system"])
+from app.api.endpoints import ai
+app.include_router(ai.router, prefix=f"{settings.API_V1_STR}/ai", tags=["ai"])
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse

@@ -12,6 +12,7 @@ import ActivityLogs from "./pages/ActivityLogs";
 import Settings from "./pages/Settings";
 import APIDocs from "./pages/APIDocs";
 import NotFound from "./pages/NotFound";
+import { AIAssistant } from "./components/AIAssistant";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+
+      // ...
+
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -32,6 +36,7 @@ const App = () => (
           <Route path="/api-docs" element={<APIDocs />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <AIAssistant />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

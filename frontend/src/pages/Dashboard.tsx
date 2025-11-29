@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { fetchStats, fetchDevices } from "@/lib/api";
+import { AIInsights } from "@/components/AIInsights";
 
 export default function Dashboard() {
   const { data: stats } = useQuery({
@@ -46,8 +47,15 @@ export default function Dashboard() {
           </div>
         </div>
 
+
+
+        // ...
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="sm:col-span-2 lg:col-span-4">
+            <AIInsights />
+          </div>
           <StatsCard
             title="Total DNS Queries"
             value={stats?.total_queries || "..."}
