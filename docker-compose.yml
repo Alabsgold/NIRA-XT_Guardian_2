@@ -1,21 +1,15 @@
 version: '3.8'
 
 services:
-  backend:
-    build: ./backend
-    container_name: nira_backend
+  nira_guardian:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nira_guardian
     ports:
       - "8000:8000"
       - "53:53/udp"
       - "5353:5353/udp"
     environment:
-      - BACKEND_CORS_ORIGINS=["http://localhost:5173","http://localhost:3000"]
+      - CORS_ORIGINS=["http://localhost:8000"]
     restart: always
-  # Optional: Run frontend in docker too if needed, 
-  # but usually for dev we run it locally or deploy to Vercel.
-  # frontend:
-  #   build: ./frontend
-  #   ports:
-  #     - "5173:5173"
-  #   depends_on:
-  #     - backend

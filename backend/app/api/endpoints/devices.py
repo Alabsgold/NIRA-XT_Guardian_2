@@ -9,7 +9,7 @@ class Device(BaseModel):
     status: str
     queries: int
 
-@router.get("/", response_model=List[Device])
+@router.get("", response_model=List[Device])
 def get_devices():
     """
     Get list of connected devices.
