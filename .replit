@@ -1,0 +1,7 @@
+run = "python production_launcher.py"
+
+[nix]
+channel = "stable-23_05"
+
+[env]
+VITE_API_URL = "https://${REPL_SLUG}.${REPL_OWNER}.repl.co/api/v1"
