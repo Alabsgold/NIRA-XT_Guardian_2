@@ -27,6 +27,16 @@ export const fetchDevices = async () => {
     return response.data;
 };
 
+export const checkDeviceStatus = async () => {
+    const response = await api.get('/devices/check');
+    return response.data;
+};
+
+export const fetchSystemIP = async () => {
+    const response = await api.get('/system/ip');
+    return response.data;
+};
+
 export const fetchLiveDNS = async () => {
     const response = await api.get('/dns/live');
     return response.data;

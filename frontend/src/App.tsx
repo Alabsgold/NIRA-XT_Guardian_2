@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import DNSMonitor from "./pages/DNSMonitor";
 import ParentalControl from "./pages/ParentalControl";
 import BlockAllowList from "./pages/BlockAllowList";
@@ -43,6 +44,7 @@ const App = () => (
 
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/admin" element={<AdminDashboard />} /> {/* Added AdminDashboard route */}
               <Route path="/dns-monitor" element={<DNSMonitor />} />
               <Route path="/parental-control" element={<ParentalControl />} />
               <Route path="/block-allow" element={<BlockAllowList />} />

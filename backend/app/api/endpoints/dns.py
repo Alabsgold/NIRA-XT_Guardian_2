@@ -1,10 +1,10 @@
-from fastapi import APIRouter, WebSocket
+from fastapi import APIRouter, WebSocket, Depends
 from typing import List, Dict
-import random
-import time
 import asyncio
 from pydantic import BaseModel
-from app.core.dns_state import dns_state
+from sqlalchemy.orm import Session
+from app.core.database import get_db, SessionLocal
+from app.models.dns_log import DNSLog
 
 router = APIRouter()
 
@@ -17,50 +17,58 @@ class DNSQuery(BaseModel):
     status: str
     responseTime: int
 
+    class Config:
+        from_attributes = True
+
+from app.core.firebase_auth import verify_token
+
 @router.get("/live", response_model=List[DNSQuery])
-def get_live_dns_queries():
+def get_live_dns_queries(db: Session = Depends(get_db), current_user: dict = Depends(verify_token)):
     """
-    Get a snapshot of recent DNS queries.
+    Get a snapshot of recent DNS queries for the current user.
     """
-    return dns_state.get_logs()
+    user_id = current_user["uid"]
+    logs = db.query(DNSLog).filter(DNSLog.user_id == user_id).order_by(DNSLog.timestamp.desc()).limit(50).all()
+    
+    return [
+        DNSQuery(
+            id=str(log.id),
+            timestamp=log.timestamp, # Already string in new model
+            domain=log.domain,
+            type=log.type, # Changed from query_type
+            device=log.client_ip,
+            status=log.status,
+            responseTime=log.response_time
+        ) for log in logs
+    ]
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    last_id = 0
     try:
         while True:
-            # Send latest logs
-            logs = dns_state.get_logs()
-            if logs:
-                await websocket.send_json(logs[0]) # Send most recent
-            await asyncio.sleep(2) # Send every 2 seconds
+            # Create a new session for each poll
+            db = SessionLocal()
+            try:
+                # Fetch latest log that is newer than what we last saw
+                latest_log = db.query(DNSLog).order_by(DNSLog.id.desc()).first()
+                
+                if latest_log and latest_log.id > last_id:
+                    last_id = latest_log.id
+                    query_data = DNSQuery(
+                        id=str(latest_log.id),
+                        timestamp=latest_log.timestamp.strftime("%H:%M:%S"),
+                        domain=latest_log.domain,
+                        type=latest_log.query_type,
+                        device=latest_log.client_ip,
+                        status=latest_log.status,
+                        responseTime=latest_log.response_time_ms
+                    )
+                    await websocket.send_json(query_data.dict())
+            finally:
+                db.close()
+                
+            await asyncio.sleep(1) # Poll every 1 second
     except Exception:
         pass
-
-# Helper to generate mock data (moving logic from frontend to backend)
-def generate_mock_queries(count: int) -> List[DNSQuery]:
-    domains = [
-        "api.github.com", "cdn.cloudflare.com", "analytics.google.com",
-        "ads.doubleclick.net", "tracker.fb.com", "api.stripe.com",
-        "fonts.googleapis.com", "malware.badsite.xyz", "phishing.scam.net",
-        "cdn.jsdelivr.net"
-    ]
-    devices = ["MacBook Pro", "iPhone 14", "iPad Air", "Smart TV", "Gaming PC"]
-    types = ["A", "AAAA", "CNAME", "MX", "TXT"]
-    
-    results = []
-    for i in range(count):
-        domain = random.choice(domains)
-        is_malicious = any(x in domain for x in ["malware", "phishing", "tracker", "ads"])
-        
-        query = DNSQuery(
-            id=f"query-{random.randint(1000, 9999)}-{int(time.time())}",
-            timestamp=time.strftime("%H:%M:%S"),
-            domain=domain,
-            type=random.choice(types),
-            device=random.choice(devices),
-            status="blocked" if is_malicious else ("allowed" if random.random() > 0.3 else "cached"),
-            responseTime=random.randint(5, 55)
-        )
-        results.append(query)
-    return results

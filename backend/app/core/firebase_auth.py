@@ -30,8 +30,9 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
         decoded_token = auth.verify_id_token(token)
         return decoded_token
     except Exception as e:
+        print(f"Token verification failed: {e}") # Debug logging
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
+            detail=f"Invalid authentication credentials: {str(e)}", # Return error to client for debugging
             headers={"WWW-Authenticate": "Bearer"},
         )

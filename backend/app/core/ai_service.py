@@ -30,22 +30,69 @@ class AIService:
 
     def analyze_domain(self, domain: str) -> Dict:
         """
-        Analyze a domain for potential threats.
+        Analyze a domain for potential threats using DB cache and AI.
         """
+        from app.core.database import SessionLocal
+        from app.models.domain_reputation import DomainReputation
+        import json
+        from datetime import datetime
+
+        # 1. Check Cache (DB)
+        db = SessionLocal()
+        try:
+            cached = db.query(DomainReputation).filter(DomainReputation.domain == domain).first()
+            if cached:
+                return {
+                    "risk_score": cached.risk_score,
+                    "category": cached.category,
+                    "reason": cached.analysis_summary,
+                    "source": "cache"
+                }
+        except Exception as e:
+            print(f"DB Error: {e}")
+        finally:
+            db.close()
+
+        # 2. AI Analysis
         prompt = f"""
         Analyze the domain '{domain}' for potential security threats.
-        Consider: Phishing, Malware, Cybersquatting, DGA, Adult Content.
-        Return a JSON response with:
-        - risk_score (0-100)
-        - category (e.g., Safe, Phishing, Malware)
-        - reason (Short explanation)
+        Consider: Phishing, Malware, Cybersquatting, DGA, Adult Content, Scam.
+        
+        Return a valid JSON object with:
+        - risk_score (0-100, where 100 is extremely dangerous)
+        - category (e.g., Safe, Phishing, Malware, Adult, Scam)
+        - reason (Short explanation, max 15 words)
+        
+        Example: {{"risk_score": 85, "category": "Phishing", "reason": "Impersonates bank login page"}}
         """
         try:
             response = self.model.generate_content(prompt)
-            # In a real app, we'd parse JSON strictly. For now, return text.
-            return {"analysis": response.text}
+            # Clean response to ensure valid JSON
+            text = response.text.replace("```json", "").replace("```", "").strip()
+            analysis = json.loads(text)
+            
+            # 3. Save to DB
+            db = SessionLocal()
+            try:
+                new_rep = DomainReputation(
+                    domain=domain,
+                    risk_score=analysis.get("risk_score", 0),
+                    category=analysis.get("category", "Unknown"),
+                    analysis_summary=analysis.get("reason", "No reason provided"),
+                    last_analyzed=datetime.utcnow()
+                )
+                db.add(new_rep)
+                db.commit()
+            except Exception as e:
+                print(f"Failed to save reputation: {e}")
+            finally:
+                db.close()
+
+            analysis["source"] = "ai"
+            return analysis
+
         except Exception as e:
-            return {"error": str(e)}
+            return {"error": str(e), "risk_score": 0, "category": "Error"}
 
     def generate_insights(self, logs: List[Dict]) -> str:
         """

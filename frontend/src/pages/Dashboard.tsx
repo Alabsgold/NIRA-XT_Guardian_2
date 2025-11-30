@@ -10,6 +10,9 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchStats, fetchDevices } from "@/lib/api";
 import { AIInsights } from "@/components/AIInsights";
 
+import { ConnectDeviceModal } from "@/components/ConnectDeviceModal";
+import { AutoConnectWizard } from "@/components/AutoConnectWizard";
+
 export default function Dashboard() {
   const { data: stats } = useQuery({
     queryKey: ['stats'],
@@ -17,7 +20,7 @@ export default function Dashboard() {
     refetchInterval: 5000,
   });
 
-  const { data: devices } = useQuery({
+  const { data: devices, refetch: refetchDevices } = useQuery({
     queryKey: ['devices'],
     queryFn: fetchDevices,
     refetchInterval: 5000,
@@ -25,6 +28,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
+      <AutoConnectWizard onConnected={refetchDevices} />
       <div className="space-y-8">
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -40,10 +44,7 @@ export default function Dashboard() {
             <StatusBadge status="success" pulse>
               All Systems Protected
             </StatusBadge>
-            <Button variant="cyber">
-              <Activity className="w-4 h-4" />
-              Run Scan
-            </Button>
+            <ConnectDeviceModal onDeviceConnected={refetchDevices} />
           </div>
         </div>
 
