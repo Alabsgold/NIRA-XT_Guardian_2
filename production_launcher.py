@@ -13,7 +13,7 @@ def run_command(command, cwd=None, shell=True):
         sys.exit(1)
 
 def main():
-    print("🚀 Starting NIRA-XT Guardian 2 (Production Mode)...")
+    print("Starting NIRA-XT Guardian 2 (Production Mode)...")
     
     base_dir = os.path.dirname(os.path.abspath(__file__))
     frontend_dir = os.path.join(base_dir, "frontend")
@@ -21,11 +21,11 @@ def main():
     static_dir = os.path.join(backend_dir, "app", "static")
 
     # 1. Build Frontend
-    print("\n📦 Building Frontend...")
+    print("\nBuilding Frontend...")
     run_command("npm run build", cwd=frontend_dir)
 
     # 2. Copy Assets
-    print("\n📂 Deploying Assets...")
+    print("\nDeploying Assets...")
     if os.path.exists(static_dir):
         shutil.rmtree(static_dir)
     
@@ -34,7 +34,7 @@ def main():
     print(f"Assets copied to {static_dir}")
 
     # 3. Start Backend
-    print("\n🔌 Starting Backend Server...")
+    print("\nStarting Backend Server...")
     print("The application will be available at http://localhost:8000")
     print("Press Ctrl+C to stop.")
     

@@ -15,7 +15,7 @@ def handle_query(data, addr, sock):
         
         # Check blocklist
         if dns_state.is_blocked(qname):
-            print(f"🚫 Blocked: {qname}")
+            print(f"[BLOCKED] {qname}")
             dns_state.add_query(qname, qtype, "blocked")
             
             # Create blocked response (NXDOMAIN or Refused)
@@ -40,7 +40,7 @@ def start_dns_server(port=53):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind(("0.0.0.0", port))
-        print(f"✅ DNS Server started on port {port}")
+        print(f"DNS Server started on port {port}")
         
         while True:
             data, addr = sock.recvfrom(512)
@@ -48,12 +48,12 @@ def start_dns_server(port=53):
             
     except (PermissionError, OSError) as e:
         if port == 53:
-            print(f"⚠️ Port {port} unavailable ({e}). Trying 5353...")
+            print(f"Port {port} unavailable ({e}). Trying 5353...")
             start_dns_server(5353)
         else:
-            print(f"❌ Failed to start DNS server on port {port}: {e}")
+            print(f"Failed to start DNS server on port {port}: {e}")
     except Exception as e:
-        print(f"❌ Failed to start DNS server: {e}")
+        print(f"Failed to start DNS server: {e}")
 
 def run_dns_background():
     threading.Thread(target=start_dns_server, daemon=True).start()

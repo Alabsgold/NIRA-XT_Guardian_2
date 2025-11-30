@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 from app.core.ai_service import ai_service
 from app.core.dns_state import dns_state
+from app.core.firebase_auth import verify_token
 
 router = APIRouter()
 
@@ -14,7 +15,7 @@ class DomainRequest(BaseModel):
     domain: str
 
 @router.post("/chat")
-async def chat_with_ai(request: ChatRequest):
+async def chat_with_ai(request: ChatRequest, token: dict = Depends(verify_token)):
     """
     Chat with the NIRA-XT AI Assistant.
     """
