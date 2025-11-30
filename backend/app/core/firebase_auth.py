@@ -4,11 +4,22 @@ from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import os
 
+import json
+
 # Initialize Firebase Admin
-cred_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "serviceAccountKey.json")
+# Check for environment variable first (for Render/Cloud)
+firebase_creds_json = os.environ.get("FIREBASE_CREDENTIALS")
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate(cred_path)
+    if firebase_creds_json:
+        # Load from environment variable string
+        cred_dict = json.loads(firebase_creds_json)
+        cred = credentials.Certificate(cred_dict)
+    else:
+        # Load from local file
+        cred_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "serviceAccountKey.json")
+        cred = credentials.Certificate(cred_path)
+        
     firebase_admin.initialize_app(cred)
 
 security = HTTPBearer()
