@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIRA-XT Guardian</title>
+    <style>
+        :root {
+            --primary: #00E676;
+            --bg: #121212;
+            --surface: #1E1E1E;
+            --text: #FFFFFF;
+            --text-sec: #B0B0B0;
+            --danger: #FF5252;
+            --warning: #FFC107;
+        }
+
+        body {
+            width: 320px;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+        }
+
+        .header {
+            padding: 16px;
+            background-color: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #333;
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 18px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tabs {
+            display: flex;
+            background-color: var(--surface);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-sec);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .content {
+            padding: 20px;
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        /* Connection Tab */
+        .status-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #333;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            transition: all 0.5s;
+        }
+
+        .status-indicator.connected {
+            background-color: var(--primary);
+            box-shadow: 0 0 30px rgba(0, 230, 118, 0.4);
+            color: #000;
+        }
+
+        .status-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .doh-url {
+            font-size: 12px;
+            color: var(--text-sec);
+            background: #222;
+            padding: 8px;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+
+        .toggle-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-connect {
+            background-color: var(--primary);
+            color: #000;
+        }
+
+        .btn-disconnect {
+            background-color: #333;
+            color: var(--text);
+            border: 1px solid #555;
+        }
+
+        /* AI Tab */
+        .score-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 8px solid #333;
+            margin: 0 auto 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .score-label {
+            font-size: 10px;
+            color: var(--text-sec);
+        }
+
+        .risk-safe {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .risk-suspicious {
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .risk-dangerous {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .threat-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+
+        .threat-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .threat-item:last-child {
+            border-bottom: none;
+        }
+
+        .threat-icon {
+            color: var(--danger);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 16px;
+            font-size: 11px;
+            color: var(--text-sec);
+            border-top: 1px solid #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo">
+            <span>🛡️</span> NIRA-XT Guardian
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" data-tab="connection">Connection</div>
+        <div class="tab" data-tab="ai">Guardian AI</div>
+    </div>
+
+    <!-- Connection Tab -->
+    <div id="connection" class="content active">
+        <div class="status-container">
+            <div id="statusIndicator" class="status-indicator">
+                <span>⚡</span>
+            </div>
+            <div id="statusText" class="status-text">Disconnected</div>
+            <div id="dohUrl" class="doh-url">No Configuration</div>
+        </div>
+        <button id="toggleBtn" class="toggle-btn btn-connect">Connect</button>
+    </div>
+
+    <!-- AI Tab -->
+    <div id="ai" class="content">
+        <div id="aiLoading" style="text-align: center; padding: 20px;">Analyzing...</div>
+        <div id="aiResults" style="display: none;">
+            <div class="score-card">
+                <div id="scoreCircle" class="score-circle">
+                    <span id="scoreValue" class="score-value">--</span>
+                    <span class="score-label">SAFETY SCORE</span>
+                </div>
+                <h3 id="riskLevel" style="margin: 0;">--</h3>
+            </div>
+
+            <div style="margin-bottom: 8px; font-size: 12px; font-weight: bold; color: var(--text-sec);">DETECTED
+                THREATS</div>
+            <ul id="threatList" class="threat-list">
+                <!-- Threats will be injected here -->
+            </ul>
+            <div id="noThreatsMsg"
+                style="text-align: center; color: var(--text-sec); font-size: 13px; padding: 10px; display: none;">
+                No threats detected on this page.
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Protected by NIRA-XT Guardian
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
