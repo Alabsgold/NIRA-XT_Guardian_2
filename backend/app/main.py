@@ -19,7 +19,7 @@ if settings.cors_origins:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[str(origin) for origin in settings.cors_origins],
-        allow_origin_regex=r"https://.*\.vercel\.app|https://.*\.onrender\.com",
+        allow_origin_regex=r"https://.*\.vercel\.app|https://.*\.onrender\.com|https://.*\.replit\.dev",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

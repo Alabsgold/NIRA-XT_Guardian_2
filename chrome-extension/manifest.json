@@ -17,7 +17,8 @@
         "matches": [
             "https://*.mydomain.com/*",
             "http://localhost:3000/*",
-            "http://127.0.0.1:3000/*"
+            "http://127.0.0.1:3000/*",
+            "https://02398015-3d95-4fe4-b53a-4595ed11e524-00-bfznkmytueli.riker.replit.dev/*"
         ]
     }
 }
