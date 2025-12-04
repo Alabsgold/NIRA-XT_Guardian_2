@@ -1,6 +1,17 @@
-import google.generativeai as genai
-from app.core.ai_config import ai_settings
+import asyncio
+import json
+import logging
+from datetime import datetime
 from typing import List, Dict
+
+import google.generativeai as genai
+
+from app.core.ai_config import ai_settings
+from app.core.cache import reputation_cache
+from app.core.database import SessionLocal
+from app.models.domain_reputation import DomainReputation
+
+logger = logging.getLogger(__name__)
 
 class AIService:
     def __init__(self):
@@ -32,11 +43,6 @@ class AIService:
         """
         Analyze a domain for potential threats using DB cache and AI.
         """
-        from app.core.database import SessionLocal
-        from app.models.domain_reputation import DomainReputation
-        import json
-        from datetime import datetime
-
         # 1. Check Cache (DB)
         db = SessionLocal()
         try:
@@ -88,11 +94,26 @@ class AIService:
             finally:
                 db.close()
 
+            # Cache for fast path
+            reputation_cache.set(domain, {
+                "risk_score": analysis.get("risk_score", 0),
+                "category": analysis.get("category", "Unknown"),
+                "reason": analysis.get("reason", "No reason provided"),
+                "source": "ai",
+                "last_analyzed": datetime.utcnow().isoformat(),
+            })
+
             analysis["source"] = "ai"
             return analysis
 
         except Exception as e:
             return {"error": str(e), "risk_score": 0, "category": "Error"}
+
+    async def analyze_domain_async(self, domain: str) -> Dict:
+        """
+        Async wrapper for analyze_domain (runs in thread to avoid blocking loop).
+        """
+        return await asyncio.to_thread(self.analyze_domain, domain)
 
     def generate_insights(self, logs: List[Dict]) -> str:
         """

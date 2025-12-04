@@ -20,12 +20,12 @@ export function AppLayout({ children }: AppLayoutProps) {
         onMobileClose={() => setMobileMenuOpen(false)}
       />
 
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen min-w-0">
         <Navbar onMenuClick={() => setMobileMenuOpen(true)} />
 
         <main
           className={cn(
-            "flex-1 p-6 lg:p-8 transition-all duration-300",
+            "flex-1 p-4 sm:p-6 lg:p-8 transition-all duration-300 w-full min-w-0",
             "cyber-grid"
           )}
         >

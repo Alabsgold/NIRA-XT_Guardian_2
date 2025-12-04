@@ -6,6 +6,11 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = "YOUR_SUPER_SECRET_KEY_CHANGE_IN_PRODUCTION_FOR_HACKATHON_DEMO_ONLY"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
+
+    # DNS / Network
+    UPSTREAM_DNS: str = "8.8.8.8"
+    DNS_RATE_LIMIT_PER_SEC: int = 100
+    REDIS_URL: str = "redis://localhost:6379/0"
     
     # CORS
     # CORS

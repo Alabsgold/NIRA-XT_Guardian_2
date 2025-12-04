@@ -1,13 +1,25 @@
+import asyncio
+import logging
 import socket
 import threading
+import time
+from datetime import datetime
+
 import dns.message
 import dns.query
 import dns.rdatatype
-import time
+
+from app.core.cache import reputation_cache
+from app.core.config import settings
+from app.core.database import SessionLocal
 from app.core.dns_state import dns_state
-from app.core.database import SessionLocal, engine, Base
 from app.models.dns_log import DNSLog
 from app.models.domain_reputation import DomainReputation
+
+logger = logging.getLogger(__name__)
+
+# Simple per-IP rate limiter (queries per second)
+_rate_window: dict[str, list[float]] = {}
 
 def handle_query(data, addr, sock):
     start_time = time.time()
@@ -29,6 +41,16 @@ def handle_query(data, addr, sock):
         except Exception as e:
             print(f"User resolution failed: {e}")
 
+        # Rate limiting
+        now = time.time()
+        timestamps = _rate_window.get(addr[0], [])
+        timestamps = [t for t in timestamps if now - t < 1]
+        if len(timestamps) >= settings.DNS_RATE_LIMIT_PER_SEC:
+            logger.warning(f"Rate limit exceeded from {addr[0]}")
+            return
+        timestamps.append(now)
+        _rate_window[addr[0]] = timestamps
+
         # Check blocklist (Static)
         if dns_state.is_blocked(qname):
             print(f"[BLOCKED STATIC] {qname}")
@@ -43,9 +65,20 @@ def handle_query(data, addr, sock):
 
         # Check AI Reputation (Dynamic)
         try:
+            cached = reputation_cache.get(qname)
+            if cached and int(cached.get("risk_score", 0)) > 70:
+                print(f"[BLOCKED AI CACHE] {qname} (Risk: {cached.get('risk_score')})")
+                response = dns.message.make_response(request)
+                response.set_rcode(dns.rcode.NXDOMAIN)
+                sock.sendto(response.to_wire(), addr)
+                
+                duration = int((time.time() - start_time) * 1000)
+                log_query_to_db(qname, qtype, "blocked_ai_cache", addr[0], duration, user_id)
+                return
+
             db = SessionLocal()
             reputation = db.query(DomainReputation).filter(DomainReputation.domain == qname).first()
-            if reputation and reputation.risk_score > 70: # Block if risk > 70
+            if reputation and reputation.risk_score > 70:  # Block if risk > 70
                 print(f"[BLOCKED AI] {qname} (Risk: {reputation.risk_score})")
                 response = dns.message.make_response(request)
                 response.set_rcode(dns.rcode.NXDOMAIN)
@@ -57,11 +90,11 @@ def handle_query(data, addr, sock):
                 return
             db.close()
         except Exception as e:
-            print(f"Reputation check failed: {e}")
+            logger.warning(f"Reputation check failed: {e}")
 
         # Forward to upstream
         try:
-            upstream_response = dns.query.udp(request, UPSTREAM_DNS, timeout=2)
+            upstream_response = dns.query.udp(request, settings.UPSTREAM_DNS, timeout=2)
             sock.sendto(upstream_response.to_wire(), addr)
             
             # Log to DB
@@ -70,13 +103,18 @@ def handle_query(data, addr, sock):
             
             # Trigger Async AI Analysis
             from app.core.ai_service import ai_service
-            threading.Thread(target=ai_service.analyze_domain, args=(qname,)).start()
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(ai_service.analyze_domain_async(qname))
+            except RuntimeError:
+                # Fallback if not in async loop
+                threading.Thread(target=ai_service.analyze_domain, args=(qname,), daemon=True).start()
             
         except Exception as e:
-            print(f"Upstream error: {e}")
+            logger.error(f"Upstream error: {e}")
             
     except Exception as e:
-        print(f"DNS Error: {e}")
+        logger.error(f"DNS Error: {e}")
 
 def start_dns_server(port=53):
     try:
@@ -99,3 +137,26 @@ def start_dns_server(port=53):
 
 def run_dns_background():
     threading.Thread(target=start_dns_server, daemon=True).start()
+
+
+def log_query_to_db(domain: str, qtype: str, status: str, client_ip: str, response_time: int, user_id: str | None):
+    try:
+        db = SessionLocal()
+        log_entry = DNSLog(
+            user_id=user_id,
+            timestamp=datetime.utcnow().isoformat(),
+            domain=domain,
+            type=qtype,
+            status=status,
+            client_ip=client_ip,
+            response_time=response_time,
+        )
+        db.add(log_entry)
+        db.commit()
+    except Exception as exc:
+        logger.debug(f"Failed to log DNS query: {exc}")
+    finally:
+        try:
+            db.close()
+        except Exception:
+            pass
